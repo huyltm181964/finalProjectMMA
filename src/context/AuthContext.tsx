@@ -39,8 +39,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const register: AuthContextType['register'] = async (payload) => {
-    const { username, password, fullName, email, phone, avatarUri } = payload;
+    const username = payload.username?.trim();
+    const password = payload.password?.trim();
+    const { fullName, email, phone, avatarUri } = payload;
+
     if (!username || !password) return { ok: false, message: 'Vui lòng nhập username và password' };
+
+    // Username: 3-20 ký tự, chỉ chữ cái/số/_.
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      return { ok: false, message: 'Username phải 3-20 ký tự, chỉ gồm chữ, số hoặc _' };
+    }
+
+    // Password: >= 6 ký tự, phải có chữ, số và ký tự đặc biệt.
+    if (
+      password.length < 6 ||
+      !/[A-Za-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[^A-Za-z0-9]/.test(password)
+    ) {
+      return { ok: false, message: 'Mật khẩu tối thiểu 6 ký tự và phải gồm chữ, số và ký tự đặc biệt' };
+    }
+
+    // Email (tùy chọn) nếu có thì phải hợp lệ.
+    if (email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(email.trim())) {
+      return { ok: false, message: 'Email không hợp lệ' };
+    }
+
+    // Phone (tùy chọn) nếu có thì chỉ số với độ dài 9-11.
+    if (phone && !/^\d{9,11}$/.test(phone.trim())) {
+      return { ok: false, message: 'Số điện thoại không hợp lệ (chỉ gồm số, 9-11 chữ số)' };
+    }
 
     const usersRaw = (await AsyncStorage.getItem(USERS_KEY)) || '[]';
     const users: User[] = JSON.parse(usersRaw);
