@@ -7,17 +7,23 @@ export type User = {
   avatarUri?: string;
 };
 
+// 🔹 Root stack điều hướng giữa AuthStack và AppStack
 export type RootStackParamList = {
   Auth: undefined;
   App: undefined;
 };
 
+// 🔹 Auth stack: đăng nhập / đăng ký
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
 };
 
+// 🔹 App stack: các màn hình trong app chính sau khi login
 export type AppStackParamList = {
-  Profile: undefined;
-  EditProfile: undefined;
+  Home: undefined; // 🏠 Trang chủ
+  FruitDetail: { fruit: any }; // 🍊 Xem chi tiết trái cây
+  Cart: undefined; // 🛒 Giỏ hàng
+  Profile: undefined; // 👤 Hồ sơ
+  EditProfile: undefined; // ✏️ Chỉnh sửa hồ sơ
 };

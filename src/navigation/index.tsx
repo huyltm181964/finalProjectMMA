@@ -3,7 +3,17 @@ import { NavigationContainer, DefaultTheme, Theme } from '@react-navigation/nati
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList, AuthStackParamList, AppStackParamList } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { LoginScreen, RegisterScreen, ProfileScreen, EditProfileScreen } from '../screens';
+import {
+  LoginScreen,
+  RegisterScreen,
+  ProfileScreen,
+  EditProfileScreen,
+} from '../screens';
+
+// 👉 import thêm 3 màn hình trái cây
+import HomeScreen from '../screens/HomeScreen';
+import FruitDetailScreen from '../screens/FruitDetailScreen';
+import CartScreen from '../screens/CartScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -17,6 +27,7 @@ const MyTheme: Theme = {
   },
 };
 
+// 🔹 Auth Stack (đăng nhập / đăng ký)
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Login" component={LoginScreen} />
@@ -24,15 +35,50 @@ const AuthNavigator = () => (
   </AuthStack.Navigator>
 );
 
+// 🔹 App Stack (sau khi đăng nhập)
 const AppNavigator = () => (
   <AppStack.Navigator>
-    <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Hồ sơ' }} />
-    <AppStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Chỉnh sửa' }} />
+    {/* Trang chủ */}
+    <AppStack.Screen
+      name="Home"
+      component={HomeScreen}
+      options={{ title: 'Trang chủ' }}
+    />
+
+    {/* Chi tiết trái cây */}
+    <AppStack.Screen
+      name="FruitDetail"
+      component={FruitDetailScreen}
+      options={{ title: 'Chi tiết sản phẩm' }}
+    />
+
+    {/* Giỏ hàng */}
+    <AppStack.Screen
+      name="Cart"
+      component={CartScreen}
+      options={{ title: 'Giỏ hàng' }}
+    />
+
+    {/* Hồ sơ cá nhân */}
+    <AppStack.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{ title: 'Hồ sơ' }}
+    />
+
+    <AppStack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{ title: 'Chỉnh sửa hồ sơ' }}
+    />
   </AppStack.Navigator>
 );
 
 export default function RootNavigation() {
   const { user, loading } = useAuth();
+
+  if (loading) return null; // hoặc có thể render màn hình splash/loading
+
   return (
     <NavigationContainer theme={MyTheme}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
