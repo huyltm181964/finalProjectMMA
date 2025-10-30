@@ -24,6 +24,8 @@ export type AppStackParamList = {
   Home: undefined; // 🏠 Trang chủ
   FruitDetail: { fruit: any }; // 🍊 Xem chi tiết trái cây
   Cart: undefined; // 🛒 Giỏ hàng
+  Checkout: undefined; // 💳 Thanh toán
+  Address: undefined; // 🏠 Quản lý địa chỉ
   Profile: undefined; // 👤 Hồ sơ
   EditProfile: undefined; // ✏️ Chỉnh sửa hồ sơ
 };

@@ -8,6 +8,8 @@ import {
   RegisterScreen,
   ProfileScreen,
   EditProfileScreen,
+  CheckoutScreen,
+  AddressScreen,
 } from '../screens';
 
 // 👉 import thêm 3 màn hình trái cây
@@ -57,6 +59,20 @@ const AppNavigator = () => (
       name="Cart"
       component={CartScreen}
       options={{ title: 'Giỏ hàng' }}
+    />
+
+    {/* Thanh toán */}
+    <AppStack.Screen
+      name="Checkout"
+      component={CheckoutScreen}
+      options={{ title: 'Thanh toán' }}
+    />
+
+    {/* Địa chỉ */}
+    <AppStack.Screen
+      name="Address"
+      component={AddressScreen}
+      options={{ title: 'Địa chỉ' }}
     />
 
     {/* Hồ sơ cá nhân */}
