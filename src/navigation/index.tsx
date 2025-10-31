@@ -10,6 +10,10 @@ import {
   EditProfileScreen,
   CheckoutScreen,
   AddressScreen,
+  OrderHistoryScreen,
+  OrderDetailScreen,
+  ReviewScreen,
+  ProductDetailScreen,
 } from '../screens';
 
 // 👉 import thêm 3 màn hình trái cây
@@ -86,6 +90,28 @@ const AppNavigator = () => (
       name="EditProfile"
       component={EditProfileScreen}
       options={{ title: 'Chỉnh sửa hồ sơ' }}
+    />
+
+    {/* Orders & product/review screens */}
+    <AppStack.Screen
+      name="OrderHistory"
+      component={OrderHistoryScreen}
+      options={{ title: 'Lịch sử đơn hàng' }}
+    />
+    <AppStack.Screen
+      name="OrderDetail"
+      component={OrderDetailScreen}
+      options={{ title: 'Chi tiết đơn hàng' }}
+    />
+    <AppStack.Screen
+      name="ProductDetail"
+      component={ProductDetailScreen}
+      options={{ title: 'Chi tiết sản phẩm' }}
+    />
+    <AppStack.Screen
+      name="Review"
+      component={ReviewScreen}
+      options={{ title: 'Đánh giá' }}
     />
   </AppStack.Navigator>
 );
