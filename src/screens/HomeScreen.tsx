@@ -54,9 +54,10 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.Content title="Danh sách trái cây 🍎" />
-        <Appbar.Action icon="cart" onPress={() => navigation.navigate('Cart')} />
-      </Appbar.Header>
+            <Appbar.Content title="Danh sách trái cây 🍎" />
+            <Appbar.Action icon="history" onPress={() => navigation.navigate('OrderHistory')} />
+            <Appbar.Action icon="cart" onPress={() => navigation.navigate('Cart')} />
+          </Appbar.Header>
 
       <Searchbar
         placeholder="Tìm kiếm theo tên..."

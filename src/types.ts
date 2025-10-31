@@ -28,4 +28,40 @@ export type AppStackParamList = {
   Address: undefined; // 🏠 Quản lý địa chỉ
   Profile: undefined; // 👤 Hồ sơ
   EditProfile: undefined; // ✏️ Chỉnh sửa hồ sơ
+  // Orders
+  OrderHistory: undefined; // 📦 Lịch sử đơn hàng
+  OrderDetail: { orderId: string }; // 📄 Chi tiết đơn hàng
+
+  // Product / Review
+  ProductDetail: { productId: string };
+  Review: { orderId?: string; productId?: string };
+};
+
+// 📦 Order related types
+export type OrderItem = {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  reviewed?: boolean;
+};
+
+export type Order = {
+  id: string;
+  userId: string;
+  createdAt: string; // ISO date
+  items: OrderItem[];
+  total: number;
+  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+};
+
+export type Review = {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string;
 };

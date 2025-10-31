@@ -3,6 +3,7 @@ import { ScrollView, View, Image } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { getProducts } from '../data/mockProducts';
 
 export default function FruitDetailScreen() {
   const navigation = useNavigation<any>();
@@ -50,6 +51,27 @@ export default function FruitDetailScreen() {
           onPress={addToCart}
         >
           Thêm vào giỏ hàng
+        </Button>
+
+        <Button
+          mode="outlined"
+          style={{ marginTop: 12 }}
+          onPress={() => {
+            // try to find a matching mock product by name
+            const products = getProducts();
+            const match = products.find((p) =>
+              p.name.toLowerCase().includes(String(fruit.name).toLowerCase()) ||
+              String(fruit.name).toLowerCase().includes(p.name.toLowerCase())
+            );
+            if (match) {
+              // navigate to the ProductDetail screen we added
+              navigation.navigate('ProductDetail', { productId: match.id });
+            } else {
+              alert('Chưa có đánh giá cho sản phẩm này trong dữ liệu mẫu.\nBạn có thể thử luồng: Lịch sử đơn hàng → Chi tiết đơn → Chi tiết sản phẩm.');
+            }
+          }}
+        >
+          Xem đánh giá
         </Button>
       </ScrollView>
     </View>
