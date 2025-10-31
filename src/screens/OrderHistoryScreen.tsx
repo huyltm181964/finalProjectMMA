@@ -29,7 +29,7 @@ const OrderHistoryScreen: React.FC<Props> = ({ navigation }) => {
             {/* show sequential number instead of raw id */}
             <Text style={styles.orderId}>Đơn hàng: {index + 1}</Text>
             <Text>Ngày: {new Date(item.createdAt).toLocaleString()}</Text>
-            <Text>Tổng: ${item.total.toFixed(2)}</Text>
+            <Text>Tổng: {item.total.toLocaleString()} đ</Text>
             <Text>Trạng thái: {item.status}</Text>
           </TouchableOpacity>
         )}

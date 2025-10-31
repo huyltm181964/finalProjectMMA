@@ -18,8 +18,8 @@ const ProductDetailScreen: React.FC<Props> = ({ route }) => {
     <View style={styles.container}>
       <Text style={styles.title}>{product.name}</Text>
       <Text>{product.description}</Text>
-      <Text style={{ marginTop: 8 }}>Giá: ${product.price.toFixed(2)}</Text>
-      <Text style={{ marginTop: 8 }}>Đánh giá trung bình: {avg.toFixed(1)} / 5</Text>
+      <Text style={{ marginTop: 8 }}>Giá: {product.price.toLocaleString()} đ</Text>
+      <Text style={{ marginTop: 8 }}>Đánh giá trung bình: {Math.round(avg)} / 5</Text>
 
       <Text style={{ marginTop: 12, fontWeight: '700' }}>Các đánh giá</Text>
       <FlatList
@@ -27,7 +27,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route }) => {
         keyExtractor={(r) => r.id}
         renderItem={({ item }) => (
           <View style={styles.review}>
-            <Text style={{ fontWeight: '700' }}>Rating: {item.rating} / 5</Text>
+            <Text style={{ fontWeight: '700' }}>Đánh giá: {item.rating} / 5</Text>
             {item.comment ? <Text>{item.comment}</Text> : null}
             <Text style={{ fontSize: 12, color: '#666' }}>{new Date(item.createdAt).toLocaleString()}</Text>
           </View>

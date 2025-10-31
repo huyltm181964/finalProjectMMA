@@ -26,7 +26,7 @@ const OrderDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Chi tiết đơn {orderIndex ?? order.id}</Text>
       <Text>Ngày: {new Date(order.createdAt).toLocaleString()}</Text>
-      <Text>Tổng: ${order.total.toFixed(2)}</Text>
+      <Text>Tổng: {order.total.toLocaleString()} đ</Text>
 
       <FlatList
         data={order.items}
@@ -35,7 +35,7 @@ const OrderDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <View style={styles.item}>
             <View style={{ flex: 1 }}>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text>Qty: {item.quantity} • ${item.price.toFixed(2)}</Text>
+              <Text>SL: {item.quantity} • {item.price.toLocaleString()} đ</Text>
             </View>
             <View style={styles.actions}>
               <View style={styles.actionBtn}>
