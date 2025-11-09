@@ -18,11 +18,22 @@ export default function FruitDetailScreen() {
   }, []);
 
   const addToCart = async () => {
-    const newCart = [...cart, fruit];
-    await AsyncStorage.setItem('cart', JSON.stringify(newCart));
-    setCart(newCart);
-    alert('Đã thêm vào giỏ hàng!');
+    const stored = (await AsyncStorage.getItem('cart')) || '[]';
+    const existingCart = JSON.parse(stored);
+
+    // Kiểm tra nếu sản phẩm đã có trong giỏ thì tăng số lượng
+    const index = existingCart.findIndex((p: any) => p.id === fruit.id);
+    if (index !== -1) {
+      existingCart[index].quantity = (existingCart[index].quantity || 1) + 1;
+    } else {
+      existingCart.push({ ...fruit, quantity: 1 });
+    }
+
+    await AsyncStorage.setItem('cart', JSON.stringify(existingCart));
+    setCart(existingCart);
+    alert('✅ Đã thêm vào giỏ hàng!');
   };
+
 
   return (
     <View style={{ flex: 1 }}>

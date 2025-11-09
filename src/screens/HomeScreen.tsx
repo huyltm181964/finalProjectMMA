@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, FlatList, Image, ActivityIndicator } from 'react-native';
+import { View, FlatList, Image, ActivityIndicator, Alert } from 'react-native';
 import { Appbar, Button, Card, Searchbar, Text, Avatar } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 type Fruit = {
@@ -8,8 +9,8 @@ type Fruit = {
   name: string;
   type: string;
   price: number;
-  image?: string;       // giữ tương thích
-  images?: string[];    // cho đa tầng fallback
+  image?: string;
+  images?: string[];
   description?: string;
 };
 
@@ -35,11 +36,9 @@ const sampleFruits: Fruit[] = [
     name: 'Nho Đen Úc',
     type: 'Nho',
     price: 45000,
-    // Đặt 3 URL dự phòng nối tiếp nhau
     images: [
       'https://images.unsplash.com/photo-1502741126161-b048400d0857?q=80&w=1200&auto=format&fit=crop&fm=jpg',
       'https://images.unsplash.com/photo-1511735111819-9a3f7709049c?q=80&w=1200&auto=format&fit=crop&fm=jpg',
-      'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?q=80&w=1200&auto=format&fit=crop&fm=jpg',
     ],
     description: 'Nho đen giàu chất chống oxy hóa, tốt cho tim mạch.',
   },
@@ -47,7 +46,7 @@ const sampleFruits: Fruit[] = [
 
 const PLACEHOLDER = 'https://via.placeholder.com/800x500.png?text=Fruit+Image';
 
-// ===== Component thẻ trái cây với đa tầng fallback ảnh =====
+// ===== Component hiển thị từng trái cây =====
 function FruitCard({
   item,
   onPressDetail,
@@ -58,7 +57,6 @@ function FruitCard({
   onAddToCart: () => void;
 }) {
   const candidates = item.images && item.images.length > 0 ? item.images : [item.image ?? PLACEHOLDER];
-
   const [coverIndex, setCoverIndex] = useState(0);
   const [avatarIndex, setAvatarIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -69,25 +67,14 @@ function FruitCard({
   const handleCoverError = () => {
     setLoading(false);
     if (coverIndex < candidates.length - 1) setCoverIndex(coverIndex + 1);
-    else if (coverUri !== PLACEHOLDER) {
-      // hết fallback → dùng placeholder
-      // đổi sang placeholder 1 lần
-      candidates.push(PLACEHOLDER);
-      setCoverIndex(candidates.length - 1);
-    }
   };
 
   const handleAvatarError = () => {
     if (avatarIndex < candidates.length - 1) setAvatarIndex(avatarIndex + 1);
-    else if (avatarUri !== PLACEHOLDER) {
-      candidates.push(PLACEHOLDER);
-      setAvatarIndex(candidates.length - 1);
-    }
   };
 
   return (
     <Card style={{ marginHorizontal: 10, marginBottom: 10 }} onPress={onPressDetail}>
-      {/* Ảnh bìa với loader */}
       <View style={{ width: '100%', height: 180, backgroundColor: '#eee' }}>
         <Image
           source={{ uri: coverUri }}
@@ -119,12 +106,7 @@ function FruitCard({
         title={item.name}
         subtitle={`${item.price.toLocaleString()} đ • ${item.type}`}
         left={(props) => (
-          <Avatar.Image
-            {...props}
-            size={36}
-            source={{ uri: avatarUri }}
-            onError={handleAvatarError}
-          />
+          <Avatar.Image {...props} size={36} source={{ uri: avatarUri }} onError={handleAvatarError} />
         )}
       />
 
@@ -146,10 +128,12 @@ function FruitCard({
   );
 }
 
+// ====== Trang chủ ======
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
+  const [cart, setCart] = useState<Fruit[]>([]); // 👉 lưu giỏ hàng tạm
 
   const filteredFruits = useMemo(
     () =>
@@ -161,12 +145,45 @@ export default function HomeScreen() {
     [search, filter]
   );
 
+  // Hàm thêm vào giỏ
+  // Hàm thêm vào giỏ hàng
+  const handleAddToCart = async (fruit: Fruit) => {
+    try {
+      const stored = (await AsyncStorage.getItem('cart')) || '[]';
+      const existingCart: any[] = JSON.parse(stored);
+
+      const fruitToAdd = {
+        ...fruit,
+        image: fruit.image || (fruit.images && fruit.images[0]) || PLACEHOLDER,
+        quantity: 1,
+      };
+
+      const index = existingCart.findIndex((f) => f.id === fruit.id);
+      if (index !== -1) {
+        existingCart[index].quantity = (existingCart[index].quantity || 1) + 1;
+      } else {
+        existingCart.push(fruitToAdd);
+      }
+
+      await AsyncStorage.setItem('cart', JSON.stringify(existingCart));
+      Alert.alert('✅ Thành công', `${fruit.name} đã được thêm vào giỏ hàng!`);
+    } catch (e) {
+      console.error('addToCart', e);
+      Alert.alert('Lỗi', 'Không thể thêm vào giỏ hàng.');
+    }
+  };
+
+
+
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Content title="Danh sách trái cây 🍎" />
         <Appbar.Action icon="history" onPress={() => navigation.navigate('OrderHistory')} />
-        <Appbar.Action icon="cart" onPress={() => navigation.navigate('Cart')} />
+        <Appbar.Action
+          icon="cart"
+          onPress={() => navigation.navigate('Cart', { cart })}
+        />
       </Appbar.Header>
 
       <Searchbar
@@ -197,7 +214,7 @@ export default function HomeScreen() {
           <FruitCard
             item={item}
             onPressDetail={() => navigation.navigate('FruitDetail', { fruit: item })}
-            onAddToCart={() => navigation.navigate('Cart', { addFruit: item })}
+            onAddToCart={() => handleAddToCart(item)}
           />
         )}
       />
