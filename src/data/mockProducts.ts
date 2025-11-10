@@ -69,23 +69,22 @@ const PRODUCTS_REVIEWS_KEY = 'product_reviews';
 })();
 
 export async function addReviewToProduct(review: Review) {
-  const pid = String((review as any).productId ?? '').toLowerCase().trim();
-  const p = products.find((x) => String(x.id ?? '').toLowerCase().trim() === pid);
-  console.log('addReviewToProduct ->', { pid, found: !!p, review });
+  const pid = String((review as any).productId ?? "").toLowerCase().trim();
+  const p = products.find((x) => String(x.id ?? "").toLowerCase().trim() === pid);
   if (!p) return false;
   if (!p.reviews) p.reviews = [];
   p.reviews.push(review);
 
-  // persist reviews map to AsyncStorage so reviews survive app restart
   try {
     const toSave = products.map((x) => ({ id: x.id, reviews: x.reviews || [] }));
     await AsyncStorage.setItem(PRODUCTS_REVIEWS_KEY, JSON.stringify(toSave));
   } catch (e) {
-    console.error('addReviewToProduct -> persist failed', e);
+    console.error('addReviewToProduct persist failed', e);
   }
 
   return true;
 }
+
 
 export function getAverageRating(productId: string) {
   const p = getProductById(String(productId ?? '').toLowerCase().trim());
