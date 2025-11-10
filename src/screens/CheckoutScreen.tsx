@@ -25,35 +25,59 @@ export default function CheckoutScreen() {
   const total = cart.reduce((s, it) => s + (it.price || 0) * (it.quantity || 1), 0);
 
   const placeOrder = async () => {
-    if (!address) {
-      Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
-      return;
-    }
+  if (!address) {
+    Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
+    return;
+  }
 
-    const order = {
-      id: `order_${Date.now()}`,
-      items: cart,
-      total,
-      address,
-      paymentMethod,
-      date: new Date().toISOString(),
-    };
+  // 🧩 Validate chi tiết địa chỉ
+  const { fullName, phone, street, city } = address;
 
-    try {
-      const data = await AsyncStorage.getItem('orders');
-      const orders = data ? JSON.parse(data) : [];
-      orders.push(order);
-      await AsyncStorage.setItem('orders', JSON.stringify(orders));
-      // clear cart
-      await AsyncStorage.removeItem('cart');
-      Alert.alert('Đặt hàng thành công', 'Đơn hàng của bạn đã được lưu.', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ]);
-    } catch (e) {
-      console.error('placeOrder', e);
-      Alert.alert('Lỗi', 'Không thể lưu đơn hàng.');
-    }
+  if (!fullName || fullName.trim().length < 3) {
+    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập họ tên người nhận hợp lệ (tối thiểu 3 ký tự).');
+    return;
+  }
+
+  if (!phone || !/^\d{9,11}$/.test(phone.trim())) {
+    Alert.alert('Lỗi địa chỉ', 'Số điện thoại không hợp lệ (chỉ gồm số, 9-11 chữ số).');
+    return;
+  }
+
+  if (!street || street.trim().length < 5) {
+    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập tên đường / số nhà hợp lệ.');
+    return;
+  }
+
+  if (!city || city.trim().length < 2) {
+    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập tên thành phố hợp lệ.');
+    return;
+  }
+
+  // ✅ Nếu tất cả hợp lệ thì tạo đơn
+  const order = {
+    id: `order_${Date.now()}`,
+    items: cart,
+    total,
+    address,
+    paymentMethod,
+    date: new Date().toISOString(),
   };
+
+  try {
+    const data = await AsyncStorage.getItem('orders');
+    const orders = data ? JSON.parse(data) : [];
+    orders.push(order);
+    await AsyncStorage.setItem('orders', JSON.stringify(orders));
+    await AsyncStorage.removeItem('cart');
+    Alert.alert('Đặt hàng thành công', 'Đơn hàng của bạn đã được lưu.', [
+      { text: 'OK', onPress: () => navigation.navigate('Home') },
+    ]);
+  } catch (e) {
+    console.error('placeOrder', e);
+    Alert.alert('Lỗi', 'Không thể lưu đơn hàng.');
+  }
+};
+
 
   return (
     <View style={{ flex: 1 }}>
