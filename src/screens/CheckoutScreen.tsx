@@ -29,56 +29,35 @@ export default function CheckoutScreen() {
   const { user } = useAuth();
 
   const placeOrder = async () => {
-    if (!address) {
-      Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
-      return;
-    }
+  if (!address) {
+    Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
+    return;
+  }
 
-    // normalize order to match app Order shape
-    const products = getProducts();
     const order = {
       id: `order_${Date.now()}`,
-      userId: user?.username ?? 'u1',
-      createdAt: new Date().toISOString(),
-      items: cart.map((it, idx) => {
-        // try to preserve a canonical productId that matches mockProducts
-        let pid = (it as any).productId || (it.id != null ? `p_${it.id}` : undefined);
-        // try matching by name if we don't have a productId
-        if (!pid) {
-          const found = products.find((p) => p.name === it.name);
-          if (found) pid = found.id;
-        }
-
-        return {
-          id: it.id?.toString() ?? `oi_${Date.now()}_${idx}`,
-          productId: pid ?? it.name,
-          name: it.name,
-          price: it.price,
-          quantity: it.quantity || 1,
-          image: it.image,
-        };
-      }),
+      items: cart,
       total,
       address,
       paymentMethod,
-      status: 'pending',
+      date: new Date().toISOString(),
     };
 
-    try {
-      const data = await AsyncStorage.getItem('orders');
-      const orders = data ? JSON.parse(data) : [];
-      orders.push(order);
-      await AsyncStorage.setItem('orders', JSON.stringify(orders));
-      // clear cart
-      await AsyncStorage.removeItem('cart');
-      Alert.alert('Đặt hàng thành công', 'Đơn hàng của bạn đã được lưu.', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ]);
-    } catch (e) {
-      console.error('placeOrder', e);
-      Alert.alert('Lỗi', 'Không thể lưu đơn hàng.');
-    }
-  };
+  try {
+    const data = await AsyncStorage.getItem('orders');
+    const orders = data ? JSON.parse(data) : [];
+    orders.push(order);
+    await AsyncStorage.setItem('orders', JSON.stringify(orders));
+    await AsyncStorage.removeItem('cart');
+    Alert.alert('Đặt hàng thành công', 'Đơn hàng của bạn đã được lưu.', [
+      { text: 'OK', onPress: () => navigation.navigate('Home') },
+    ]);
+  } catch (e) {
+    console.error('placeOrder', e);
+    Alert.alert('Lỗi', 'Không thể lưu đơn hàng.');
+  }
+};
+
 
   return (
     <View style={{ flex: 1 }}>

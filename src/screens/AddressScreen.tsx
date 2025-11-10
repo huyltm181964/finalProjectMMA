@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Appbar, Button, Card, TextInput, Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -20,15 +20,60 @@ export default function AddressScreen() {
   }, [navigation]);
 
   const saveAddress = async () => {
+    const { fullName, phone, street, city } = form;
+
+    // 🧩 Validate dữ liệu nhập
+    if (!fullName || fullName.trim().length < 3) {
+      Alert.alert('Lỗi', 'Vui lòng nhập họ tên hợp lệ (tối thiểu 3 ký tự).');
+      return;
+    }
+    if (!phone || !/^\d{9,11}$/.test(phone.trim())) {
+      Alert.alert('Lỗi', 'Số điện thoại không hợp lệ (chỉ gồm số, 9-11 chữ số).');
+      return;
+    }
+    if (!street || street.trim().length < 5) {
+      Alert.alert('Lỗi', 'Vui lòng nhập tên đường / số nhà hợp lệ (tối thiểu 5 ký tự).');
+      return;
+    }
+    if (!city || city.trim().length < 2) {
+      Alert.alert('Lỗi', 'Vui lòng nhập tên thành phố hợp lệ.');
+      return;
+    }
+
     const newList = [...addresses, form];
     await AsyncStorage.setItem('addresses', JSON.stringify(newList));
     await AsyncStorage.setItem('lastAddress', JSON.stringify(form));
+    Alert.alert('Thành công', 'Đã lưu địa chỉ mới.');
     navigation.goBack();
   };
 
   const choose = async (addr: any) => {
     await AsyncStorage.setItem('lastAddress', JSON.stringify(addr));
     navigation.goBack();
+  };
+
+  // 🗑️ Xóa địa chỉ
+  const deleteAddress = (index: number) => {
+    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa địa chỉ này?', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: async () => {
+          const newAddresses = [...addresses];
+          newAddresses.splice(index, 1);
+          setAddresses(newAddresses);
+          await AsyncStorage.setItem('addresses', JSON.stringify(newAddresses));
+
+          // Nếu xóa địa chỉ đang dùng làm lastAddress, xóa luôn
+          const lastAddressRaw = await AsyncStorage.getItem('lastAddress');
+          const lastAddress = lastAddressRaw ? JSON.parse(lastAddressRaw) : null;
+          if (lastAddress && lastAddress === addresses[index]) {
+            await AsyncStorage.removeItem('lastAddress');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -49,6 +94,9 @@ export default function AddressScreen() {
             </Card.Content>
             <Card.Actions>
               <Button onPress={() => choose(a)}>Chọn</Button>
+              <Button onPress={() => deleteAddress(i)} color="red">
+                Xóa
+              </Button>
             </Card.Actions>
           </Card>
         ))}
@@ -56,13 +104,32 @@ export default function AddressScreen() {
         <Card style={{ padding: 12 }}>
           <Card.Title title="Thêm địa chỉ mới" />
           <Card.Content>
-            <TextInput label="Họ tên" value={form.fullName} onChangeText={t => setForm({ ...form, fullName: t })} />
-            <TextInput label="Số điện thoại" value={form.phone} onChangeText={t => setForm({ ...form, phone: t })} keyboardType="phone-pad" />
-            <TextInput label="Đường" value={form.street} onChangeText={t => setForm({ ...form, street: t })} />
-            <TextInput label="Thành phố" value={form.city} onChangeText={t => setForm({ ...form, city: t })} />
+            <TextInput
+              label="Họ tên"
+              value={form.fullName}
+              onChangeText={t => setForm({ ...form, fullName: t })}
+            />
+            <TextInput
+              label="Số điện thoại"
+              value={form.phone}
+              onChangeText={t => setForm({ ...form, phone: t })}
+              keyboardType="phone-pad"
+            />
+            <TextInput
+              label="Đường"
+              value={form.street}
+              onChangeText={t => setForm({ ...form, street: t })}
+            />
+            <TextInput
+              label="Thành phố"
+              value={form.city}
+              onChangeText={t => setForm({ ...form, city: t })}
+            />
           </Card.Content>
           <Card.Actions>
-            <Button mode="contained" onPress={saveAddress}>Lưu địa chỉ</Button>
+            <Button mode="contained" onPress={saveAddress}>
+              Lưu địa chỉ
+            </Button>
           </Card.Actions>
         </Card>
       </ScrollView>

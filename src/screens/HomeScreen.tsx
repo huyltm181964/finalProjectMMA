@@ -36,10 +36,8 @@ const sampleFruits: Fruit[] = [
     name: 'Nho Đen Úc',
     type: 'Nho',
     price: 45000,
-    images: [
-      'https://images.unsplash.com/photo-1502741126161-b048400d0857?q=80&w=1200&auto=format&fit=crop&fm=jpg',
-      'https://images.unsplash.com/photo-1511735111819-9a3f7709049c?q=80&w=1200&auto=format&fit=crop&fm=jpg',
-    ],
+    image: "https://vinfruits.com/wp-content/uploads/2022/06/b16549613c3c9662cf2d1.jpg",
+
     description: 'Nho đen giàu chất chống oxy hóa, tốt cho tim mạch.',
   },
 ];
