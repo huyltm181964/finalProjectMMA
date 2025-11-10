@@ -1,109 +1,103 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, ScrollView } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../types';
-import { getProductById, getProducts, getAverageRating } from '../data/mockProducts';
-// AsyncStorage removed: add-to-cart is no longer available on this screen
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, Image, StyleSheet } from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { AppStackParamList, Review } from "../types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getProducts, getProductById } from "../data/mockProducts";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'ProductDetail'>;
+type Props = NativeStackScreenProps<AppStackParamList, "ProductDetail">;
+
+const PRODUCTS_REVIEWS_KEY = "product_reviews";
 
 const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { productId } = route.params;
   const [product, setProduct] = useState<any | null>(null);
   const [avg, setAvg] = useState<number>(0);
 
-  useEffect(() => {
-    const load = () => {
-      // more robust lookup: accept productId as id string/number, product name, or a full product object
-      let p: any = null;
-      try {
-        const products = getProducts();
-        const strip = (s: any) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // hàm tính rating trung bình từ mảng reviews
+  const computeAvg = (reviews?: Review[]) => {
+    if (!reviews || reviews.length === 0) return 0;
+    const sum = reviews.reduce((s, r) => s + r.rating, 0);
+    return sum / reviews.length;
+  };
 
-        // if a full product object was passed
-        if (productId && typeof productId === 'object') {
-          const pAny = productId as any;
-          if (pAny.id) {
-            p = getProductById(String(pAny.id).toLowerCase().trim());
-          }
-          if (!p && pAny.name) {
-            const key = strip(pAny.name);
-            p = products.find((x) => strip(x.name) === key || strip(x.name).includes(key) || key.includes(strip(x.name))) || null;
-          }
-        } else {
-          // try direct id match first
-          p = getProductById(String(productId).toLowerCase().trim());
-          if (!p) {
-            // try matching by name (or partial name)
-            const key = strip(productId as any);
-            p = products.find((x) => strip(x.name) === key || strip(x.name).includes(key) || key.includes(strip(x.name))) || null;
+  const loadProduct = async () => {
+    const products = getProducts();
 
-            // fallback: numeric indices sometimes used in demos (1 -> p_cam, 2 -> p_tao, 3 -> p_nho)
-            if (!p && /^[0-9]+$/.test(String(productId))) {
-              const map: Record<string, string> = { '1': 'p_cam', '2': 'p_tao', '3': 'p_nho' };
-              const mapped = map[String(productId)];
-              if (mapped) p = getProductById(mapped);
-            }
-          }
+    // Load persisted reviews từ AsyncStorage
+    try {
+      const raw = await AsyncStorage.getItem(PRODUCTS_REVIEWS_KEY);
+      if (raw) {
+        const saved: { id: string; reviews?: Review[] }[] = JSON.parse(raw);
+        if (Array.isArray(saved)) {
+          saved.forEach((s) => {
+            const p = products.find((x) => x.id === s.id);
+            if (p) p.reviews = s.reviews || [];
+          });
         }
-      } catch (e) {
-        console.error('product detail lookup', e);
       }
+    } catch (e) {
+      console.error("Failed to load persisted reviews", e);
+    }
 
-      console.log('ProductDetailScreen.load -> looking for productId param', productId, 'resolved product=', p);
-      setProduct(p);
+    // Load product
+    let p: any = null;
+    if (typeof productId === "object" && productId.id) {
+      p = getProductById(productId.id);
+    } else {
+      p = getProductById(String(productId));
+    }
 
-      // Dùng mockProducts để tính avg và lấy reviews (đã merge persisted)
-      if (p) {
-        const rating = getAverageRating(p.id);
-        setAvg(rating);
-        console.log(`ProductDetail: avg rating ${rating} from ${p.reviews?.length || 0} reviews`);
-      } else {
-        setAvg(0);
-      }
-    };
+    setProduct(p);
+    setAvg(computeAvg(p?.reviews));
+  };
 
-    // initial load
-    load();
+  useEffect(() => {
+    loadProduct();
 
-    // reload when the screen gains focus so newly submitted reviews show up
-    const unsub = navigation.addListener('focus', () => {
-      load();
+    const unsub = navigation.addListener("focus", () => {
+      loadProduct(); // reload mỗi khi screen focus
     });
-
-    return () => {
-      unsub && unsub();
-    };
+    return () => unsub && unsub();
   }, [productId, navigation]);
 
-  // addToCart removed from ProductDetailScreen per request
-
-  if (!product) return <View style={styles.container}><Text>Sản phẩm không tìm thấy</Text></View>;
+  if (!product)
+    return (
+      <View style={styles.container}>
+        <Text>Sản phẩm không tìm thấy</Text>
+      </View>
+    );
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-      {product.image ? (
+      {product.image && (
         <Image source={{ uri: product.image }} style={styles.headerImage} />
-      ) : null}
-
+      )}
       <View style={{ padding: 16 }}>
         <Text style={styles.title}>{product.name}</Text>
-        <Text style={{ color: '#666', marginTop: 6 }}>Giá: {product.price.toLocaleString()} đ • Trái cây</Text>
+        <Text style={{ color: "#666", marginTop: 6 }}>
+          Giá: {product.price.toLocaleString()} đ • Trái cây
+        </Text>
         <Text style={{ marginTop: 12 }}>{product.description}</Text>
 
-        {/* Thêm vào giỏ hàng đã bị loại bỏ khỏi màn hình chi tiết sản phẩm */}
-
-        <Text style={{ marginTop: 20, fontWeight: '700' }}>Đánh giá trung bình: {Math.round(avg)} / 5 ({product.reviews?.length || 0} đánh giá)</Text>
+        <Text style={{ marginTop: 20, fontWeight: "700" }}>
+          Đánh giá trung bình: {Math.round(avg)} / 5 (
+          {product.reviews?.length || 0} đánh giá)
+        </Text>
 
         <View style={{ marginTop: 12 }}>
-          {(product.reviews || []).length === 0 ? (
+          {!product.reviews || product.reviews.length === 0 ? (
             <Text>Chưa có đánh giá</Text>
           ) : (
-            (product.reviews || []).map((item: any) => (
+            product.reviews.map((item: Review) => (
               <View key={item.id} style={styles.review}>
-                <Text style={{ fontWeight: '700' }}>Đánh giá: {item.rating} / 5</Text>
-                {item.comment ? <Text>{item.comment}</Text> : null}
-                <Text style={{ fontSize: 12, color: '#666' }}>{new Date(item.createdAt).toLocaleString()}</Text>
+                <Text style={{ fontWeight: "700" }}>
+                  Đánh giá: {item.rating} / 5
+                </Text>
+                {item.comment && <Text>{item.comment}</Text>}
+                <Text style={{ fontSize: 12, color: "#666" }}>
+                  {new Date(item.createdAt).toLocaleString()}
+                </Text>
               </View>
             ))
           )}
@@ -115,10 +109,15 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: '800' },
-  review: { padding: 8, borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginTop: 8 },
-  headerImage: { width: '100%', height: 220 },
-  // add-to-cart styles removed
+  title: { fontSize: 20, fontWeight: "800" },
+  review: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  headerImage: { width: "100%", height: 220 },
 });
 
 export default ProductDetailScreen;
