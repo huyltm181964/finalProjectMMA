@@ -27,23 +27,19 @@ export default function AddressScreen() {
       Alert.alert('Lỗi', 'Vui lòng nhập họ tên hợp lệ (tối thiểu 3 ký tự).');
       return;
     }
-
     if (!phone || !/^\d{9,11}$/.test(phone.trim())) {
       Alert.alert('Lỗi', 'Số điện thoại không hợp lệ (chỉ gồm số, 9-11 chữ số).');
       return;
     }
-
     if (!street || street.trim().length < 5) {
       Alert.alert('Lỗi', 'Vui lòng nhập tên đường / số nhà hợp lệ (tối thiểu 5 ký tự).');
       return;
     }
-
     if (!city || city.trim().length < 2) {
       Alert.alert('Lỗi', 'Vui lòng nhập tên thành phố hợp lệ.');
       return;
     }
 
-    // ✅ Nếu hợp lệ, tiến hành lưu
     const newList = [...addresses, form];
     await AsyncStorage.setItem('addresses', JSON.stringify(newList));
     await AsyncStorage.setItem('lastAddress', JSON.stringify(form));
@@ -54,6 +50,30 @@ export default function AddressScreen() {
   const choose = async (addr: any) => {
     await AsyncStorage.setItem('lastAddress', JSON.stringify(addr));
     navigation.goBack();
+  };
+
+  // 🗑️ Xóa địa chỉ
+  const deleteAddress = (index: number) => {
+    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa địa chỉ này?', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: async () => {
+          const newAddresses = [...addresses];
+          newAddresses.splice(index, 1);
+          setAddresses(newAddresses);
+          await AsyncStorage.setItem('addresses', JSON.stringify(newAddresses));
+
+          // Nếu xóa địa chỉ đang dùng làm lastAddress, xóa luôn
+          const lastAddressRaw = await AsyncStorage.getItem('lastAddress');
+          const lastAddress = lastAddressRaw ? JSON.parse(lastAddressRaw) : null;
+          if (lastAddress && lastAddress === addresses[index]) {
+            await AsyncStorage.removeItem('lastAddress');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -74,6 +94,9 @@ export default function AddressScreen() {
             </Card.Content>
             <Card.Actions>
               <Button onPress={() => choose(a)}>Chọn</Button>
+              <Button onPress={() => deleteAddress(i)} color="red">
+                Xóa
+              </Button>
             </Card.Actions>
           </Card>
         ))}
@@ -104,7 +127,9 @@ export default function AddressScreen() {
             />
           </Card.Content>
           <Card.Actions>
-            <Button mode="contained" onPress={saveAddress}>Lưu địa chỉ</Button>
+            <Button mode="contained" onPress={saveAddress}>
+              Lưu địa chỉ
+            </Button>
           </Card.Actions>
         </Card>
       </ScrollView>
