@@ -3,6 +3,8 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { Appbar, Button, Card, Text, RadioButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
+import { getProducts } from '../data/mockProducts';
 
 export default function CheckoutScreen() {
   const navigation = useNavigation<any>();
@@ -24,44 +26,22 @@ export default function CheckoutScreen() {
 
   const total = cart.reduce((s, it) => s + (it.price || 0) * (it.quantity || 1), 0);
 
+  const { user } = useAuth();
+
   const placeOrder = async () => {
   if (!address) {
     Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
     return;
   }
 
-  // 🧩 Validate chi tiết địa chỉ
-  const { fullName, phone, street, city } = address;
-
-  if (!fullName || fullName.trim().length < 3) {
-    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập họ tên người nhận hợp lệ (tối thiểu 3 ký tự).');
-    return;
-  }
-
-  if (!phone || !/^\d{9,11}$/.test(phone.trim())) {
-    Alert.alert('Lỗi địa chỉ', 'Số điện thoại không hợp lệ (chỉ gồm số, 9-11 chữ số).');
-    return;
-  }
-
-  if (!street || street.trim().length < 5) {
-    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập tên đường / số nhà hợp lệ.');
-    return;
-  }
-
-  if (!city || city.trim().length < 2) {
-    Alert.alert('Lỗi địa chỉ', 'Vui lòng nhập tên thành phố hợp lệ.');
-    return;
-  }
-
-  // ✅ Nếu tất cả hợp lệ thì tạo đơn
-  const order = {
-    id: `order_${Date.now()}`,
-    items: cart,
-    total,
-    address,
-    paymentMethod,
-    date: new Date().toISOString(),
-  };
+    const order = {
+      id: `order_${Date.now()}`,
+      items: cart,
+      total,
+      address,
+      paymentMethod,
+      date: new Date().toISOString(),
+    };
 
   try {
     const data = await AsyncStorage.getItem('orders');

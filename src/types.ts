@@ -33,8 +33,8 @@ export type AppStackParamList = {
   OrderDetail: { orderId: string }; // 📄 Chi tiết đơn hàng
 
   // Product / Review
-  ProductDetail: { productId: string };
-  Review: { orderId?: string; productId?: string };
+  ProductDetail: { productId: string | any };
+  Review: { orderId?: string; productId?: string | any };
 };
 
 // 📦 Order related types
@@ -46,6 +46,8 @@ export type OrderItem = {
   quantity: number;
   image?: string;
   reviewed?: boolean;
+  // review attached to this specific order item (each order keeps its own review)
+  review?: Review;
 };
 
 export type Order = {
