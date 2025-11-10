@@ -3,6 +3,8 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { Appbar, Button, Card, Text, RadioButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
+import { getProducts } from '../data/mockProducts';
 
 export default function CheckoutScreen() {
   const navigation = useNavigation<any>();
@@ -24,19 +26,42 @@ export default function CheckoutScreen() {
 
   const total = cart.reduce((s, it) => s + (it.price || 0) * (it.quantity || 1), 0);
 
+  const { user } = useAuth();
+
   const placeOrder = async () => {
     if (!address) {
       Alert.alert('Thiếu địa chỉ', 'Vui lòng chọn hoặc nhập địa chỉ giao hàng.');
       return;
     }
 
+    // normalize order to match app Order shape
+    const products = getProducts();
     const order = {
       id: `order_${Date.now()}`,
-      items: cart,
+      userId: user?.username ?? 'u1',
+      createdAt: new Date().toISOString(),
+      items: cart.map((it, idx) => {
+        // try to preserve a canonical productId that matches mockProducts
+        let pid = (it as any).productId || (it.id != null ? `p_${it.id}` : undefined);
+        // try matching by name if we don't have a productId
+        if (!pid) {
+          const found = products.find((p) => p.name === it.name);
+          if (found) pid = found.id;
+        }
+
+        return {
+          id: it.id?.toString() ?? `oi_${Date.now()}_${idx}`,
+          productId: pid ?? it.name,
+          name: it.name,
+          price: it.price,
+          quantity: it.quantity || 1,
+          image: it.image,
+        };
+      }),
       total,
       address,
       paymentMethod,
-      date: new Date().toISOString(),
+      status: 'pending',
     };
 
     try {

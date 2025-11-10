@@ -1,23 +1,55 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList, Order } from '../types';
 import { getOrdersForUser } from '../data/mockOrders';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'OrderHistory'>;
 
 const OrderHistoryScreen: React.FC<Props> = ({ navigation }) => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // demo: current user id u1
-    const data = getOrdersForUser('u1');
-    setOrders(data);
-  }, []);
+    let mounted = true;
+    const load = async () => {
+      const uid = user?.username ?? 'u1';
+      const data = await getOrdersForUser(uid);
+      if (mounted) setOrders(data);
+    };
+
+    // load once and also reload when screen gains focus (so newly saved orders appear)
+    load();
+    const unsubscribe = navigation.addListener('focus', load);
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [navigation]);
+
+  const clearData = async () => {
+    try {
+      // clear entire AsyncStorage (only for testing) - you may prefer selective removal
+      await AsyncStorage.clear();
+      // Or selective: await AsyncStorage.multiRemove(['product_reviews', 'orders', 'cart']);
+      Alert.alert('✅ Đã reset data test!');
+      // update local state to reflect cleared storage
+      setOrders([]);
+    } catch (e) {
+      console.error('Clear data error', e);
+      Alert.alert('Lỗi reset data');
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Lịch sử đơn hàng</Text>
+      <TouchableOpacity onPress={clearData} style={{ backgroundColor: 'red', padding: 10, marginBottom: 12, borderRadius: 6 }}>
+        <Text style={{ color: 'white', textAlign: 'center', fontWeight: '700' }}>KIỂM TRA DỮ LIỆU ĐẶT LẠI</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={orders}
         keyExtractor={(item) => item.id}
