@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Image } from 'react-native';
+import { ScrollView, View, Image, Alert } from 'react-native'; // <-- thêm Alert
 import { Appbar, Button, Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -31,16 +31,12 @@ export default function FruitDetailScreen() {
 
     await AsyncStorage.setItem('cart', JSON.stringify(existingCart));
     setCart(existingCart);
-    alert('✅ Đã thêm vào giỏ hàng!');
+    Alert.alert('✅ Đã thêm vào giỏ hàng!'); // <-- dùng Alert.alert
   };
-
 
   return (
     <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={fruit.name} />
-      </Appbar.Header>
+      
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Image
@@ -55,12 +51,8 @@ export default function FruitDetailScreen() {
           {fruit.price.toLocaleString()} đ
         </Text>
         <Text>{fruit.description}</Text>
-        <Button
-          mode="contained"
-          icon="cart"
-          style={{ marginTop: 16 }}
-          onPress={addToCart}
-        >
+
+        <Button mode="contained" icon="cart" style={{ marginTop: 16 }} onPress={addToCart}>
           Thêm vào giỏ hàng
         </Button>
 
@@ -68,17 +60,19 @@ export default function FruitDetailScreen() {
           mode="outlined"
           style={{ marginTop: 12 }}
           onPress={() => {
-            // try to find a matching mock product by name
             const products = getProducts();
-            const match = products.find((p) =>
-              p.name.toLowerCase().includes(String(fruit.name).toLowerCase()) ||
-              String(fruit.name).toLowerCase().includes(p.name.toLowerCase())
+            const match = products.find(
+              (p) =>
+                p.name.toLowerCase().includes(String(fruit.name).toLowerCase()) ||
+                String(fruit.name).toLowerCase().includes(p.name.toLowerCase())
             );
             if (match) {
-              // navigate to the ProductDetail screen we added
               navigation.navigate('ProductDetail', { productId: match.id });
             } else {
-              alert('Chưa có đánh giá cho sản phẩm này trong dữ liệu mẫu.\nBạn có thể thử luồng: Lịch sử đơn hàng → Chi tiết đơn → Chi tiết sản phẩm.');
+              Alert.alert( // <-- dùng Alert.alert
+                'Chưa có đánh giá',
+                'Chưa có đánh giá cho sản phẩm này trong dữ liệu mẫu.\nBạn có thể thử luồng: Lịch sử đơn hàng → Chi tiết đơn → Chi tiết sản phẩm.'
+              );
             }
           }}
         >

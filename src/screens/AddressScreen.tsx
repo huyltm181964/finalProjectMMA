@@ -8,6 +8,7 @@ export default function AddressScreen() {
   const navigation = useNavigation<any>();
   const [addresses, setAddresses] = useState<any[]>([]);
   const [form, setForm] = useState({ fullName: '', phone: '', street: '', city: '' });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null); // null = thêm mới
 
   const load = async () => {
     const data = await AsyncStorage.getItem('addresses');
@@ -40,11 +41,23 @@ export default function AddressScreen() {
       return;
     }
 
-    const newList = [...addresses, form];
+    let newList = [...addresses];
+
+    if (editingIndex !== null) {
+      // ✅ chỉnh sửa
+      newList[editingIndex] = form;
+      setEditingIndex(null);
+      Alert.alert('Thành công', 'Đã cập nhật địa chỉ.');
+    } else {
+      // ✅ thêm mới
+      newList.push(form);
+      Alert.alert('Thành công', 'Đã lưu địa chỉ mới.');
+    }
+
+    setAddresses(newList);
     await AsyncStorage.setItem('addresses', JSON.stringify(newList));
     await AsyncStorage.setItem('lastAddress', JSON.stringify(form));
-    Alert.alert('Thành công', 'Đã lưu địa chỉ mới.');
-    navigation.goBack();
+    setForm({ fullName: '', phone: '', street: '', city: '' });
   };
 
   const choose = async (addr: any) => {
@@ -52,7 +65,11 @@ export default function AddressScreen() {
     navigation.goBack();
   };
 
-  // 🗑️ Xóa địa chỉ
+  const editAddress = (index: number) => {
+    setForm(addresses[index]);
+    setEditingIndex(index);
+  };
+
   const deleteAddress = (index: number) => {
     Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa địa chỉ này?', [
       { text: 'Hủy', style: 'cancel' },
@@ -61,15 +78,21 @@ export default function AddressScreen() {
         style: 'destructive',
         onPress: async () => {
           const newAddresses = [...addresses];
-          newAddresses.splice(index, 1);
+          const removed = newAddresses.splice(index, 1)[0];
           setAddresses(newAddresses);
           await AsyncStorage.setItem('addresses', JSON.stringify(newAddresses));
 
           // Nếu xóa địa chỉ đang dùng làm lastAddress, xóa luôn
           const lastAddressRaw = await AsyncStorage.getItem('lastAddress');
           const lastAddress = lastAddressRaw ? JSON.parse(lastAddressRaw) : null;
-          if (lastAddress && lastAddress === addresses[index]) {
+          if (lastAddress && JSON.stringify(lastAddress) === JSON.stringify(removed)) {
             await AsyncStorage.removeItem('lastAddress');
+          }
+
+          // Nếu đang edit địa chỉ vừa xóa, reset form
+          if (editingIndex === index) {
+            setForm({ fullName: '', phone: '', street: '', city: '' });
+            setEditingIndex(null);
           }
         },
       },
@@ -78,10 +101,7 @@ export default function AddressScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Địa chỉ" />
-      </Appbar.Header>
+
 
       <ScrollView contentContainerStyle={styles.container}>
         {addresses.map((a, i) => (
@@ -94,6 +114,7 @@ export default function AddressScreen() {
             </Card.Content>
             <Card.Actions>
               <Button onPress={() => choose(a)}>Chọn</Button>
+              <Button onPress={() => editAddress(i)}>Sửa</Button>
               <Button onPress={() => deleteAddress(i)} color="red">
                 Xóa
               </Button>
@@ -102,7 +123,7 @@ export default function AddressScreen() {
         ))}
 
         <Card style={{ padding: 12 }}>
-          <Card.Title title="Thêm địa chỉ mới" />
+          <Card.Title title={editingIndex !== null ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'} />
           <Card.Content>
             <TextInput
               label="Họ tên"
@@ -128,7 +149,7 @@ export default function AddressScreen() {
           </Card.Content>
           <Card.Actions>
             <Button mode="contained" onPress={saveAddress}>
-              Lưu địa chỉ
+              {editingIndex !== null ? 'Cập nhật địa chỉ' : 'Lưu địa chỉ'}
             </Button>
           </Card.Actions>
         </Card>
