@@ -69,7 +69,7 @@ export default function CartScreen() {
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+
         <Appbar.Content title="Giỏ hàng 🛒" />
         <Appbar.Action icon="delete" onPress={() => {
           Alert.alert('Xoá giỏ hàng', 'Bạn có chắc muốn xoá toàn bộ giỏ hàng?', [
