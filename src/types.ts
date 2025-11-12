@@ -5,6 +5,7 @@ export type User = {
   email?: string;
   phone?: string;
   avatarUri?: string;
+  role?: 'user' | 'admin';
 };
 
 // 🔹 Root stack điều hướng giữa AuthStack và AppStack

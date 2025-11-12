@@ -30,6 +30,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const load = async () => {
       try {
+        // Seed a default admin account if none exists
+        try {
+          const rawUsers = (await AsyncStorage.getItem(USERS_KEY)) || '[]';
+          const list: User[] = JSON.parse(rawUsers);
+          const hasAdmin = list.some(u => (u as any).role === 'admin');
+          if (!hasAdmin) {
+            const adminUser: User = {
+              username: 'admin',
+              // Must meet password rule: >=6, letters, numbers, special
+              password: 'Admin@123',
+              fullName: 'Administrator',
+              email: 'admin@example.com',
+              role: 'admin',
+            };
+            // only add if username doesn't exist
+            if (!list.some(u => u.username.toLowerCase() === adminUser.username.toLowerCase())) {
+              list.push(adminUser);
+              await AsyncStorage.setItem(USERS_KEY, JSON.stringify(list));
+            }
+          }
+        } catch (e) {
+          console.warn('Admin seed failed', e);
+        }
+
         const stored = await AsyncStorage.getItem(CURRENT_USER_KEY);
         if (stored) setUser(JSON.parse(stored));
       } finally {
@@ -80,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
       return { ok: false, message: 'Username đã tồn tại' };
     }
-    const newUser: User = { username, password, fullName, email, phone, avatarUri };
+  const newUser: User = { username, password, fullName, email, phone, avatarUri, role: 'user' };
     users.push(newUser);
     await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
     if (opts.autoLogin !== false) {

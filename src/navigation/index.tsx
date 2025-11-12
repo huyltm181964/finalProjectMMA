@@ -26,6 +26,10 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
+import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
+import AdminCategoriesScreen from '../screens/admin/AdminCategoriesScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -63,10 +67,12 @@ function ProfileStackNavigator() {
     <AppStack.Navigator>
       <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Hồ sơ' }} />
       <AppStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Chỉnh sửa hồ sơ' }} />
+      <AppStack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ title: 'Lịch sử đơn hàng' }} />
+      <AppStack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Chi tiết đơn hàng' }} />
+      <AppStack.Screen name="Review" component={ReviewScreen} options={{ title: 'Đánh giá' }} />
     </AppStack.Navigator>
   );
 }
-
 const AppNavigator = () => (
   <Tab.Navigator screenOptions={{ headerShown: false }}>
     <Tab.Screen
@@ -96,6 +102,32 @@ const AppNavigator = () => (
   </Tab.Navigator>
 );
 
+// Admin-only tabs: Categories, Products, Orders, Users
+const AdminTabs = () => (
+  <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Screen
+      name="AdminCategories"
+      component={AdminCategoriesScreen}
+      options={{ title: 'Categories', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="shape" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminProducts"
+      component={AdminProductsScreen}
+      options={{ title: 'Products', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="cube-outline" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminOrders"
+      component={AdminOrdersScreen}
+      options={{ title: 'Orders', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="clipboard-text" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminUsers"
+      component={AdminUsersScreen}
+      options={{ title: 'Users', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="account-cog" color={color} size={size} /> }}
+    />
+  </Tab.Navigator>
+);
+
 export default function RootNavigation() {
   const { user, loading } = useAuth();
 
@@ -105,7 +137,11 @@ export default function RootNavigation() {
     <NavigationContainer theme={MyTheme}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <RootStack.Screen name="App" component={AppNavigator} />
+          (user as any)?.role === 'admin' ? (
+            <RootStack.Screen name="App" component={AdminTabs} />
+          ) : (
+            <RootStack.Screen name="App" component={AppNavigator} />
+          )
         ) : (
           <RootStack.Screen name="Auth" component={AuthNavigator} />
         )}

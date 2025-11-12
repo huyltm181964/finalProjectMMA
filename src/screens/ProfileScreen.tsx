@@ -28,10 +28,12 @@ export default function ProfileScreen({ navigation }: Props) {
           <List.Item title="Email" description={user.email || '-'} left={(props: any) => <List.Icon {...props} icon="email" />} />
           <List.Item title="Số điện thoại" description={user.phone || '-'} left={(props: any) => <List.Icon {...props} icon="phone" />} />
         </List.Section>
-
-        <Button mode="contained" onPress={() => navigation.navigate('EditProfile')} style={{ marginVertical: 8 }}>
-          Chỉnh sửa thông tin
-        </Button>
+            <Button mode="contained" onPress={() => navigation.navigate('EditProfile')} style={{ marginVertical: 8 }}>
+              Chỉnh sửa thông tin
+            </Button>
+            <Button mode="outlined" onPress={() => navigation.navigate('OrderHistory')} style={{ marginBottom: 8 }}>
+              Lịch sử đơn hàng
+            </Button>
         <Button mode="outlined" onPress={logout}>
           Đăng xuất
         </Button>
