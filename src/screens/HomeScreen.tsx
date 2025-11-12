@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, FlatList, Image, ActivityIndicator, Alert } from 'react-native';
 import { Appbar, Button, Card, Searchbar, Text, Avatar } from 'react-native-paper';
+import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
@@ -129,6 +130,7 @@ function FruitCard({
 // ====== Trang chủ ======
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
+  const { logout } = useAuth();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
   const [cart, setCart] = useState<Fruit[]>([]); // 👉 lưu giỏ hàng tạm
@@ -177,10 +179,22 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Content title="Danh sách trái cây 🍎" />
-        <Appbar.Action icon="history" onPress={() => navigation.navigate('OrderHistory')} />
+        <Appbar.Action
+          icon="logout"
+          onPress={() => {
+            Alert.alert('Xác nhận', 'Bạn có chắc muốn đăng xuất?', [
+              { text: 'Hủy', style: 'cancel' },
+              { text: 'Đăng xuất', style: 'destructive', onPress: async () => { await logout(); } },
+            ]);
+          }}
+        />
+        <Appbar.Action
+          icon="account-circle"
+          onPress={() => navigation.navigate('ProfileTab')}
+        />
         <Appbar.Action
           icon="cart"
-          onPress={() => navigation.navigate('Cart', { cart })}
+          onPress={() => navigation.navigate('CartTab', { cart })}
         />
       </Appbar.Header>
 

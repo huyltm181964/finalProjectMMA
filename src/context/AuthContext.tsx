@@ -5,10 +5,11 @@ import { User } from '../types';
 const USERS_KEY = 'users';
 const CURRENT_USER_KEY = 'currentUser';
 
-type AuthContextType = {
+  type AuthContextType = {
   user: User | null;
   loading: boolean;
-  register: (payload: Omit<User, 'avatarUri'> & { avatarUri?: string }) => Promise<{ ok: boolean; message?: string }>; 
+  // register can accept an object { data, options } or the plain data shape
+  register: (payload: any) => Promise<{ ok: boolean; message?: string }>;
   login: (username: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<Omit<User, 'username' | 'password'>> & { password?: string }) => Promise<{ ok: boolean; message?: string }>;
@@ -38,10 +39,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     load();
   }, []);
 
-  const register: AuthContextType['register'] = async (payload) => {
-    const username = payload.username?.trim();
-    const password = payload.password?.trim();
-    const { fullName, email, phone, avatarUri } = payload;
+  // allow caller to control whether to auto-login after registration
+  type RegisterOptions = { autoLogin?: boolean };
+  const register: AuthContextType['register'] = async (payload: any) => {
+    const opts: RegisterOptions = payload?.options || {};
+    const data = payload?.data || payload;
+    const username = data.username?.trim();
+    const password = data.password?.trim();
+    const { fullName, email, phone, avatarUri } = data;
 
     if (!username || !password) return { ok: false, message: 'Vui lòng nhập username và password' };
 
@@ -78,8 +83,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newUser: User = { username, password, fullName, email, phone, avatarUri };
     users.push(newUser);
     await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
-    setUser(newUser);
+    if (opts.autoLogin !== false) {
+      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+      setUser(newUser);
+    }
     return { ok: true };
   };
 
