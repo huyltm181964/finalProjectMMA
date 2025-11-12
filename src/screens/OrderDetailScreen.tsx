@@ -206,14 +206,8 @@ const OrderDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Button
                   title="Chi tiết"
                   onPress={() =>
-                    navigation.navigate("ProductDetail", {
-                      productId: {
-                        id: item.productId,
-                        name: item.name,
-                        image: item.image,
-                        price: item.price,
-                      } as any,
-                    })
+                    // ProductDetail belongs to HomeStack; go to HomeTab and open ProductDetail
+                    (navigation as any).navigate('HomeTab', { screen: 'ProductDetail', params: { product: { id: item.productId, name: item.name, image: item.image, price: item.price } } as any })
                   }
                 />
               </View>
@@ -222,7 +216,8 @@ const OrderDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Button
                   title={item.reviewed ? "Đánh giá lại" : "Đánh giá"}
                   onPress={() =>
-                    navigation.navigate("Review", {
+                    // Review screen is in ProfileStack so we can navigate directly
+                    (navigation as any).navigate("Review", {
                       orderId: order.id,
                       productId: item.productId,
                     })
