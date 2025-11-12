@@ -41,16 +41,16 @@ export default function AdminOrdersScreen() {
         keyExtractor={(it) => it.id}
         contentContainerStyle={{ padding: 12 }}
         renderItem={({ item }) => (
-          <Card style={{ marginBottom: 10 }}>
+          <Card style={{ marginBottom: 12 }}>
             <Card.Title title={`Đơn: ${item.id}`} subtitle={`${new Date(item.createdAt).toLocaleString()}  •  Tổng: ${item.total?.toLocaleString?.() || 0} đ`} />
             <Card.Content>
               <Text>Trạng thái hiện tại: {item.status}</Text>
             </Card.Content>
-            <Card.Actions>
-              <Chip onPress={() => updateStatus(item.id, 'pending')}>pending</Chip>
-              <Chip onPress={() => updateStatus(item.id, 'shipped')}>shipped</Chip>
-              <Chip onPress={() => updateStatus(item.id, 'delivered')}>delivered</Chip>
-              <Chip onPress={() => updateStatus(item.id, 'cancelled')}>cancelled</Chip>
+            <Card.Actions style={{ flexWrap: 'wrap' }}>
+              <Chip mode="outlined" style={{ marginRight: 6, marginBottom: 6 }} onPress={() => updateStatus(item.id, 'pending')}>pending</Chip>
+              <Chip mode="outlined" style={{ marginRight: 6, marginBottom: 6 }} onPress={() => updateStatus(item.id, 'shipped')}>shipped</Chip>
+              <Chip mode="outlined" style={{ marginRight: 6, marginBottom: 6 }} onPress={() => updateStatus(item.id, 'delivered')}>delivered</Chip>
+              <Chip mode="outlined" style={{ marginRight: 6, marginBottom: 6 }} onPress={() => updateStatus(item.id, 'cancelled')}>cancelled</Chip>
             </Card.Actions>
           </Card>
         )}

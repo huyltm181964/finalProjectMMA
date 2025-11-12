@@ -60,11 +60,11 @@ export default function AdminUsersScreen() {
         keyExtractor={(it) => it.username}
         contentContainerStyle={{ padding: 12 }}
         renderItem={({ item }) => (
-          <Card style={{ marginBottom: 10 }}>
+          <Card style={{ marginBottom: 12 }}>
             <Card.Title title={item.fullName || item.username} subtitle={`${item.email || ''}  •  ${item.role || 'user'}`} />
             <Card.Actions>
-              <Button onPress={() => openEdit(item)}>Sửa</Button>
-              <Button onPress={() => remove(item.username)}>Xoá</Button>
+              <Button mode="contained-tonal" onPress={() => openEdit(item)}>Sửa</Button>
+              <Button mode="outlined" onPress={() => remove(item.username)} style={{ marginLeft: 6 }}>Xoá</Button>
             </Card.Actions>
           </Card>
         )}

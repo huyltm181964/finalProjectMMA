@@ -3,7 +3,12 @@ import { Product } from './mockProducts';
 
 const ADMIN_PRODUCTS_KEY = 'admin_products';
 
-export type AdminProduct = Product;
+export type AdminProduct = Product & {
+  categoryId?: string;
+  featured?: boolean;
+  discountPercent?: number;
+  wideImage?: string;
+};
 
 export async function getAllAdminProducts(): Promise<AdminProduct[]> {
   try {

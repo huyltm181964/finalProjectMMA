@@ -8,6 +8,10 @@ export type Product = {
   description?: string;
   image?: string;
   reviews?: Review[];
+  categoryId?: string; // danh mục
+  featured?: boolean;  // nổi bật
+  discountPercent?: number; // % khuyến mại
+  wideImage?: string; // ảnh rộng (banner)
 };
 
 // Align product list with HomeScreen sample fruits
@@ -19,6 +23,8 @@ const products: Product[] = [
     description: 'Cam sành ngọt, mọng nước, cung cấp vitamin C dồi dào.',
     image: 'https://images.unsplash.com/photo-1547514701-42782101795e?q=80&w=1200&auto=format&fit=crop&fm=jpg',
     reviews: [],
+    categoryId: 'cat_trai_cay',
+    featured: true,
   },
   {
     id: 'p_tao',
@@ -27,6 +33,7 @@ const products: Product[] = [
     description: 'Táo Mỹ giòn, ngọt thanh, nhiều chất xơ và vitamin A.',
     image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?q=80&w=1200&auto=format&fit=crop&fm=jpg',
     reviews: [],
+    categoryId: 'cat_trai_cay',
   },
   {
     id: 'p_nho',
@@ -35,6 +42,7 @@ const products: Product[] = [
     description: 'Nho đen giàu chất chống oxy hóa, tốt cho tim mạch.',
     image: 'https://images.unsplash.com/photo-1502741126161-b048400d0857?q=80&w=1200&auto=format&fit=crop&fm=jpg',
     reviews: [],
+    categoryId: 'cat_trai_cay',
   },
 ];
 

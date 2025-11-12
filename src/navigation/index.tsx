@@ -26,10 +26,10 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import AdminDashboard from '../screens/admin/AdminDashboard';
 import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
+import AdminCategoriesScreen from '../screens/admin/AdminCategoriesScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -102,27 +102,29 @@ const AppNavigator = () => (
   </Tab.Navigator>
 );
 
-// Admin stack inside a tab
-const AdminStack = createNativeStackNavigator();
-function AdminStackNavigator() {
-  return (
-    <AdminStack.Navigator>
-      <AdminStack.Screen name="AdminDashboard" component={AdminDashboard} options={{ title: 'Admin' }} />
-      <AdminStack.Screen name="AdminProducts" component={AdminProductsScreen} options={{ title: 'Sản phẩm' }} />
-      <AdminStack.Screen name="AdminUsers" component={AdminUsersScreen} options={{ title: 'Người dùng' }} />
-      <AdminStack.Screen name="AdminOrders" component={AdminOrdersScreen} options={{ title: 'Đơn hàng' }} />
-    </AdminStack.Navigator>
-  );
-}
-
-const AppNavigatorWithAdmin = ({ isAdmin }: { isAdmin: boolean }) => (
+// Admin-only tabs: Categories, Products, Orders, Users
+const AdminTabs = () => (
   <Tab.Navigator screenOptions={{ headerShown: false }}>
-    <Tab.Screen name="HomeTab" component={HomeStackNavigator} options={{ title: 'Home', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="home" color={color} size={size} /> }} />
-    <Tab.Screen name="CartTab" component={CartScreen} options={{ title: 'Cart', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="cart" color={color} size={size} /> }} />
-    <Tab.Screen name="ProfileTab" component={ProfileStackNavigator} options={{ title: 'Profile', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="account-circle" color={color} size={size} /> }} />
-    {isAdmin && (
-      <Tab.Screen name="AdminTab" component={AdminStackNavigator} options={{ title: 'Admin', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="shield-account" color={color} size={size} /> }} />
-    )}
+    <Tab.Screen
+      name="AdminCategories"
+      component={AdminCategoriesScreen}
+      options={{ title: 'Categories', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="shape" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminProducts"
+      component={AdminProductsScreen}
+      options={{ title: 'Products', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="cube-outline" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminOrders"
+      component={AdminOrdersScreen}
+      options={{ title: 'Orders', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="clipboard-text" color={color} size={size} /> }}
+    />
+    <Tab.Screen
+      name="AdminUsers"
+      component={AdminUsersScreen}
+      options={{ title: 'Users', tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="account-cog" color={color} size={size} /> }}
+    />
   </Tab.Navigator>
 );
 
@@ -135,9 +137,11 @@ export default function RootNavigation() {
     <NavigationContainer theme={MyTheme}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <RootStack.Screen name="App">
-            {() => <AppNavigatorWithAdmin isAdmin={(user as any)?.role === 'admin'} />}
-          </RootStack.Screen>
+          (user as any)?.role === 'admin' ? (
+            <RootStack.Screen name="App" component={AdminTabs} />
+          ) : (
+            <RootStack.Screen name="App" component={AppNavigator} />
+          )
         ) : (
           <RootStack.Screen name="Auth" component={AuthNavigator} />
         )}
