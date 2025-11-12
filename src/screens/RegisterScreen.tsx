@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { ImageBackground, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View, Alert } from 'react-native';
 import { Button, HelperText, Text, TextInput, ProgressBar } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../types';
 import { useAuth } from '../context/AuthContext';
 
-const background = { uri: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1916&auto=format&fit=crop' };
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -19,6 +19,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string; email?: string; phone?: string }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const next: { username?: string; password?: string; email?: string; phone?: string } = {};
@@ -53,26 +54,31 @@ export default function RegisterScreen({ navigation }: Props) {
     setError(null);
     if (!validate()) return;
     setLoading(true);
-    const res = await register({ username: username.trim(), password, fullName, email, phone });
+    const res = await register({ data: { username: username.trim(), password, fullName, email, phone }, options: { autoLogin: false } });
     setLoading(false);
     if (!res.ok) setError(res.message || 'Đăng ký thất bại');
+    else {
+      Alert.alert('Thành công', 'Đăng ký thành công. Vui lòng đăng nhập.', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      ]);
+    }
   };
 
   return (
-    <ImageBackground source={background} style={styles.bg}>
+    <LinearGradient colors={["#f7f2ff", "#eef5ff"]} style={styles.bg}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.overlay}>
         <View style={styles.card}>
           <Text variant="headlineLarge" style={styles.title}>Tạo tài khoản ✨</Text>
-          <Text variant="bodyMedium" style={styles.subtitle}>Nhập thông tin của bạn</Text>
+          <Text variant="bodyMedium" style={styles.subtitle}>Đăng ký để tham gia</Text>
 
-          <TextInput label="Họ và tên" value={fullName} onChangeText={setFullName} style={styles.input} />
-          <TextInput label="Email" value={email} onChangeText={(t) => { setEmail(t); setFieldErrors(s => ({ ...s, email: undefined })); }} keyboardType="email-address" style={styles.input} />
+          <TextInput label="Họ và tên" value={fullName} onChangeText={setFullName} style={styles.input} left={<TextInput.Icon icon="account" />} />
+          <TextInput label="Email" value={email} onChangeText={(t) => { setEmail(t); setFieldErrors(s => ({ ...s, email: undefined })); }} keyboardType="email-address" style={styles.input} left={<TextInput.Icon icon="email" />} />
           {!!fieldErrors.email && <HelperText type="error">{fieldErrors.email}</HelperText>}
-          <TextInput label="Số điện thoại" value={phone} onChangeText={(t) => { setPhone(t); setFieldErrors(s => ({ ...s, phone: undefined })); }} keyboardType="phone-pad" style={styles.input} />
+          <TextInput label="Số điện thoại" value={phone} onChangeText={(t) => { setPhone(t); setFieldErrors(s => ({ ...s, phone: undefined })); }} keyboardType="phone-pad" style={styles.input} left={<TextInput.Icon icon="phone" />} />
           {!!fieldErrors.phone && <HelperText type="error">{fieldErrors.phone}</HelperText>}
-          <TextInput label="Username" value={username} onChangeText={(t) => { setUsername(t); setFieldErrors(s => ({ ...s, username: undefined })); }} autoCapitalize="none" style={styles.input} />
+          <TextInput label="Username" value={username} onChangeText={(t) => { setUsername(t); setFieldErrors(s => ({ ...s, username: undefined })); }} autoCapitalize="none" style={styles.input} left={<TextInput.Icon icon="account-circle" />} />
           {!!fieldErrors.username && <HelperText type="error">{fieldErrors.username}</HelperText>}
-          <TextInput label="Password" value={password} onChangeText={(t) => { setPassword(t); setFieldErrors(s => ({ ...s, password: undefined })); }} secureTextEntry style={styles.input} />
+          <TextInput label="Password" value={password} onChangeText={(t) => { setPassword(t); setFieldErrors(s => ({ ...s, password: undefined })); }} secureTextEntry={!showPassword} style={styles.input} left={<TextInput.Icon icon="lock" />} right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(s => !s)} />} />
           {strength.show && (
             <View style={{ gap: 6 }}>
               <ProgressBar progress={strength.progress} color={strength.color} />
@@ -82,24 +88,29 @@ export default function RegisterScreen({ navigation }: Props) {
           {!!fieldErrors.password && <HelperText type="error">{fieldErrors.password}</HelperText>}
           {!!error && <HelperText type="error">{error}</HelperText>}
 
-          <Button mode="contained" onPress={onSubmit} loading={loading} disabled={loading} style={styles.button}>
-            Đăng ký
+          <Button mode="contained" onPress={onSubmit} loading={loading} disabled={loading} style={styles.button} contentStyle={styles.buttonContent}>
+            Register
           </Button>
+          <View style={styles.socialRow}>
+            {/* placeholders for social icons, can use IconButton like in Login */}
+          </View>
           <Button mode="text" onPress={() => navigation.navigate('Login')}>
-            Đã có tài khoản? Đăng nhập
+            I Have A Account ? Login
           </Button>
         </View>
       </KeyboardAvoidingView>
-    </ImageBackground>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  bg: { flex: 1 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 24 },
-  card: { backgroundColor: 'white', borderRadius: 16, padding: 20, gap: 12 },
-  title: { fontWeight: '700' },
-  subtitle: { color: '#666', marginBottom: 8 },
-  input: {},
-  button: { marginTop: 8 },
+  bg: { flex: 1, justifyContent: 'center' },
+  overlay: { flex: 1, justifyContent: 'center', padding: 24 },
+  card: { backgroundColor: 'white', borderRadius: 24, padding: 24, gap: 12, elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10 },
+  title: { fontWeight: '700', textAlign: 'center' },
+  subtitle: { color: '#666', marginBottom: 8, textAlign: 'center' },
+  input: { marginBottom: 8, borderRadius: 10 },
+  button: { marginTop: 8, borderRadius: 30, backgroundColor: '#00A8B5' },
+  buttonContent: { height: 44 },
+  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 6 },
 });

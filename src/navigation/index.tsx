@@ -24,6 +24,10 @@ import CartScreen from '../screens/CartScreen';
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+const Tab = createBottomTabNavigator();
 
 const MyTheme: Theme = {
   ...DefaultTheme,
@@ -41,79 +45,55 @@ const AuthNavigator = () => (
   </AuthStack.Navigator>
 );
 
-// 🔹 App Stack (sau khi đăng nhập)
+// We'll expose a bottom-tab navigator with Home / Cart / Profile
+function HomeStackNavigator() {
+  return (
+    <AppStack.Navigator>
+      <AppStack.Screen name="Home" component={HomeScreen} options={{ title: 'Trang chủ' }} />
+      <AppStack.Screen name="FruitDetail" component={FruitDetailScreen} options={{ title: 'Chi tiết sản phẩm' }} />
+      <AppStack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Chi tiết sản phẩm' }} />
+      <AppStack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Thanh toán' }} />
+      <AppStack.Screen name="Address" component={AddressScreen} options={{ title: 'Địa chỉ' }} />
+    </AppStack.Navigator>
+  );
+}
+
+function ProfileStackNavigator() {
+  return (
+    <AppStack.Navigator>
+      <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Hồ sơ' }} />
+      <AppStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Chỉnh sửa hồ sơ' }} />
+    </AppStack.Navigator>
+  );
+}
+
 const AppNavigator = () => (
-  <AppStack.Navigator>
-    {/* Trang chủ */}
-    <AppStack.Screen
-      name="Home"
-      component={HomeScreen}
-      options={{ title: 'Trang chủ' }}
+  <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Screen
+      name="HomeTab"
+      component={HomeStackNavigator}
+      options={{
+        title: 'Home',
+        tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="home" color={color} size={size} />,
+      }}
     />
-
-    {/* Chi tiết trái cây */}
-    <AppStack.Screen
-      name="FruitDetail"
-      component={FruitDetailScreen}
-      options={{ title: 'Chi tiết sản phẩm' }}
-    />
-
-    {/* Giỏ hàng */}
-    <AppStack.Screen
-      name="Cart"
+    <Tab.Screen
+      name="CartTab"
       component={CartScreen}
-      options={{ title: 'Giỏ hàng' }}
+      options={{
+        title: 'Cart',
+        tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="cart" color={color} size={size} />,
+      }}
     />
-
-    {/* Thanh toán */}
-    <AppStack.Screen
-      name="Checkout"
-      component={CheckoutScreen}
-      options={{ title: 'Thanh toán' }}
+    <Tab.Screen
+      name="ProfileTab"
+      component={ProfileStackNavigator}
+      options={{
+        title: 'Profile',
+        tabBarIcon: ({ color, size }: any) => <MaterialCommunityIcons name="account-circle" color={color} size={size} />,
+      }}
     />
-
-    {/* Địa chỉ */}
-    <AppStack.Screen
-      name="Address"
-      component={AddressScreen}
-      options={{ title: 'Địa chỉ' }}
-    />
-
-    {/* Hồ sơ cá nhân */}
-    <AppStack.Screen
-      name="Profile"
-      component={ProfileScreen}
-      options={{ title: 'Hồ sơ' }}
-    />
-
-    <AppStack.Screen
-      name="EditProfile"
-      component={EditProfileScreen}
-      options={{ title: 'Chỉnh sửa hồ sơ' }}
-    />
-
-    {/* Orders & product/review screens */}
-    <AppStack.Screen
-      name="OrderHistory"
-      component={OrderHistoryScreen}
-      options={{ title: 'Lịch sử đơn hàng' }}
-    />
-    <AppStack.Screen
-      name="OrderDetail"
-      component={OrderDetailScreen}
-      options={{ title: 'Chi tiết đơn hàng' }}
-    />
-    <AppStack.Screen
-      name="ProductDetail"
-      component={ProductDetailScreen}
-      options={{ title: 'Chi tiết sản phẩm' }}
-    />
-    <AppStack.Screen
-      name="Review"
-      component={ReviewScreen}
-      options={{ title: 'Đánh giá' }}
-    />
-  </AppStack.Navigator>
+  </Tab.Navigator>
 );
 
 export default function RootNavigation() {

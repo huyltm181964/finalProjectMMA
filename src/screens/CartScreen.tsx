@@ -56,7 +56,8 @@ export default function CartScreen() {
       Alert.alert('Giỏ hàng trống', 'Vui lòng thêm sản phẩm trước khi thanh toán.');
       return;
     }
-    navigation.navigate('Checkout');
+    // We're inside CartTab. Checkout is part of HomeStack; navigate to HomeTab and target its Checkout screen
+    navigation.navigate('HomeTab', { screen: 'Checkout' });
   };
 
   useEffect(() => {
